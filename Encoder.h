@@ -28,10 +28,11 @@ SOFTWARE.*
 #define __Encoder_h__
 
 #include "mbed.h"
+#include <chrono>
 
 class Encoder {
 public:
-    Encoder(PinName pinA, PinName pinB, PinName pinBtnPush);
+    Encoder(PinName pinA, PinName pinB, PinName pinBtnPush, std::chrono::microseconds sampleTime = 1ms);
 
     void read(int &delta, bool &btnPressed, bool &btnReleased);
 
@@ -41,6 +42,7 @@ private:
     DigitalIn   _encInA;
     DigitalIn   _encInB;
     DigitalIn   _btnPush;
+    Ticker      _ticker;
     int         _btnPushOld;
     int         _encDelta;
     int         _encLast;

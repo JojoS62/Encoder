@@ -27,21 +27,22 @@ SOFTWARE.*
 
 #include "mbed.h"
 
-class Encoder {
+class EncoderIrq {
 public:
-    Encoder(PinName pinA, PinName pinB);
+    EncoderIrq(PinName pinA, PinName pinB);
 
     int read();
 
 private:
-    InterruptIn   _encInA;
-    InterruptIn   _encInB;
+    InterruptIn _encInA;
+    DigitalIn   _encInB;
+    int         _inBLast;
     int         _encDelta;
     int         _encLast;
     void _isrRisingA();
-    void _isrRisingB();
     void _isrFallingA();
-    void _isrFallingB();
+    //void _isrRisingB();
+    //void _isrFallingB();
 };
 
 #endif

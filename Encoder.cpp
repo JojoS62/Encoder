@@ -26,19 +26,22 @@ SOFTWARE.*
 
 #include "Encoder.h"
 
-Encoder::Encoder(PinName pinA, PinName pinB, PinName pinBtnPush) :
+static constexpr int8_t table[16] = {0,0,-1,0,0,0,0,1,1,0,0,0,0,-1,0,0};
+
+Encoder::Encoder(PinName pinA, PinName pinB, PinName pinBtnPush, std::chrono::microseconds sampleTime) :
     _encInA(pinA, PullUp),
     _encInB(pinB, PullUp),
     _btnPush(pinBtnPush, PullUp)
 {
     _encLast = 0;
     _encDelta = 0;
+    if (sampleTime > 0s) {
+        _ticker.attach(callback(this, &Encoder::process), sampleTime);
+    }
 }
 
 void Encoder::process()
 {
-    int i = 0;
-
     int btnPush = _btnPush;
     if (btnPush != _btnPushOld) {
         if (_btnPushOld) {
@@ -46,32 +49,27 @@ void Encoder::process()
         } else {
             _btnReleased = true;
         }
-    } else {
-        _btnPressed = false;
-        _btnReleased = false;
     }
     _btnPushOld = btnPush;
 
+    _encLast = (_encLast << 2) & 0xf;
+
     if (_encInB) {
-        i = 1;
+        _encLast |= 2;
     }
     if (_encInA) {
-        i ^= 3;                 // convert gray to binary
+        _encLast |= 1;
     }
 
-    i -= _encLast;              // difference new - last
-
-    if (i & 1) {                // bit 0 = value (1)
-        _encLast += i;          // store new as next last
-        _encDelta += (i & 2) - 1;   // bit 1 = direction (+/-)
-    }
+    _encDelta += table[_encLast];
 }
 
 void Encoder::read(int &delta, bool &btnPressed, bool &btnReleased)
 {
-    process();
     delta = _encDelta;
     btnPressed = _btnPressed;
     btnReleased = _btnReleased;
     _encDelta = 0;
+    _btnPressed = false;
+    _btnReleased = false;
 }

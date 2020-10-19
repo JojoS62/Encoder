@@ -30,6 +30,10 @@ EncoderIrq::EncoderIrq(PinName pinA, PinName pinB) :
 {
     _encLast = 0;
     _encDelta = 0;
+    _encInA.rise(callback(this, &EncoderIrq::_isrRisingA));
+//    _encInB.rise(callback(this, &EncoderIrq::_isrRisingB));
+    _encInA.fall(callback(this, &EncoderIrq::_isrFallingA));
+//    _encInB.fall(callback(this, &EncoderIrq::_isrFallingB));
 }
 
 int EncoderIrq::read()
@@ -41,37 +45,45 @@ int EncoderIrq::read()
 
 void EncoderIrq::_isrRisingA()
 {
-    if (_encInB) {
-        _encDelta++;
-    } else {
-        _encDelta--;
+    int inB = _encInB;
+    if (inB != _inBLast) {
+        if (inB ) {
+            _encDelta++;
+        } else {
+            _encDelta--;
+        }
+        _inBLast = inB;
     }
 }
 
-void EncoderIrq::_isrFallingA();
+void EncoderIrq::_isrFallingA()
 {
-    if (_encInB) {
-        _encDelta--;
-    } else {
-        _encDelta++;
+    int inB = _encInB;
+    if (inB != _inBLast) {
+        if (_encInB) {
+            _encDelta--;
+        } else {
+            _encDelta++;
+        }
+        _inBLast = inB;
     }
 }
 
-void EncoderIrq::_isrRisingB();
-{
-    if (_encInA) {
-        _encDelta--;
-    } else {
-        _encDelta++;
-    }
-}
+// void EncoderIrq::_isrRisingB()
+// {
+//     if (_encInA) {
+//         _encDelta--;
+//     } else {
+//         _encDelta++;
+//     }
+// }
 
-void EncoderIrq::_isrFallingB();
-{
-    if (_encInA) {
-        _encDelta++;
-    } else {
-        _encDelta--;
-    }
-}
+// void EncoderIrq::_isrFallingB()
+// {
+//     if (_encInA) {
+//         _encDelta++;
+//     } else {
+//         _encDelta--;
+//     }
+// }
 
